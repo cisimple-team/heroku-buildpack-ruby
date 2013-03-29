@@ -1,3 +1,5 @@
 repos/*
 vendor/bundler/*
 vendor/bundle/*
+
+.idea
