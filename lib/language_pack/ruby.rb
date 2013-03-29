@@ -90,7 +90,7 @@ private
   # the base PATH environment variable to be used
   # @return [String] the resulting PATH
   def default_path
-    "#{slug_vendor_base}/bin:/usr/local/bin:/usr/bin:/bin"
+    "bin:#{slug_vendor_base}/bin:/usr/local/bin:/usr/bin:/bin"
   end
 
   # the relative path to the bundler directory of gems
@@ -304,7 +304,7 @@ ERROR
 
   # setup the environment so we can use the vendored ruby
   def setup_ruby_install_env
-    ENV["PATH"] = "#{ruby_install_binstub_path}:thirdparty/plistutil/bin:#{ENV["PATH"]}"
+    ENV["PATH"] = "#{ruby_install_binstub_path}:#{ENV["PATH"]}"
 
     if ruby_version_jruby?
       ENV['JAVA_OPTS']  = default_java_opts
