@@ -18,6 +18,8 @@ class LanguagePack::Ruby < LanguagePack::Base
   NODE_JS_BINARY_PATH = "node-#{NODE_VERSION}"
   JVM_BASE_URL        = "http://heroku-jvm-langpack-java.s3.amazonaws.com"
   JVM_VERSION         = "openjdk7-latest"
+  PLIST_UTIL_BIN      = "http://cisimple-heroku.s3.amazonaws.com/plistutil.tar.gz"
+  PLIST_UTIL_VENDOR   = "vendor"
 
   # detects if this is a valid Ruby app
   # @return [Boolean] true if it's a Ruby app
@@ -53,7 +55,7 @@ class LanguagePack::Ruby < LanguagePack::Base
     vars = {
       "LANG"     => "en_US.UTF-8",
       "PATH"     => default_path,
-      "GEM_PATH" => slug_vendor_base,
+      "GEM_PATH" => slug_vendor_base
     }
 
     ruby_version_jruby? ? vars.merge("JAVA_OPTS" => default_java_opts, "JRUBY_OPTS" => default_jruby_opts) : vars
@@ -71,6 +73,7 @@ class LanguagePack::Ruby < LanguagePack::Base
     remove_vendor_bundle
     install_ruby
     install_jvm
+    install_vendor_lib
     setup_language_pack_environment
     setup_profiled
     allow_git do
@@ -87,7 +90,7 @@ private
   # the base PATH environment variable to be used
   # @return [String] the resulting PATH
   def default_path
-    "bin:#{slug_vendor_base}/bin:/usr/local/bin:/usr/bin:/bin"
+    "#{File.expand_path(build_path, PLIST_UTIL_VENDOR, "plistutil/bin")}:bin:#{slug_vendor_base}/bin:/usr/local/bin:/usr/bin:/bin"
   end
 
   # the relative path to the bundler directory of gems
@@ -274,6 +277,12 @@ ERROR
         run("ln -s ../#{bin} #{bin_dir}")
       end
     end
+  end
+
+  def install_vendor_lib
+    full_plist_path = File.expand_path(build_path, PLIST_UTIL_VENDOR)
+    FileUtils.mkdir_p(full_plist_path)
+    run("curl #{PLIST_UTIL_BIN} -o - | tar -xz -C #{full_plist_path} -f -")
   end
 
   # find the ruby install path for its binstubs during build
