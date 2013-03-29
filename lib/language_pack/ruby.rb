@@ -19,7 +19,7 @@ class LanguagePack::Ruby < LanguagePack::Base
   JVM_BASE_URL        = "http://heroku-jvm-langpack-java.s3.amazonaws.com"
   JVM_VERSION         = "openjdk7-latest"
   PLIST_UTIL_BIN      = "http://cisimple-heroku.s3.amazonaws.com/plistutil.tar.gz"
-  PLIST_UTIL_VENDOR   = "vendor"
+  PLIST_UTIL_VENDOR   = "thirdparty"
 
   # detects if this is a valid Ruby app
   # @return [Boolean] true if it's a Ruby app
@@ -90,7 +90,7 @@ private
   # the base PATH environment variable to be used
   # @return [String] the resulting PATH
   def default_path
-    "#{File.expand_path(build_path, PLIST_UTIL_VENDOR, "plistutil/bin")}:bin:#{slug_vendor_base}/bin:/usr/local/bin:/usr/bin:/bin"
+    "#{slug_vendor_base}/bin:/usr/local/bin:/usr/bin:/bin"
   end
 
   # the relative path to the bundler directory of gems
@@ -205,7 +205,7 @@ private
   def setup_profiled
     set_env_override "GEM_PATH", "$HOME/#{slug_vendor_base}:$GEM_PATH"
     set_env_default  "LANG",     "en_US.UTF-8"
-    set_env_override "PATH",     "$HOME/bin:$HOME/#{slug_vendor_base}/bin:$PATH"
+    set_env_override "PATH",     "#{PLIST_UTIL_VENDOR}/plistutil/bin:$HOME/bin:$HOME/#{slug_vendor_base}/bin:$PATH"
 
     if ruby_version_jruby?
       set_env_default "JAVA_OPTS", default_java_opts
@@ -280,9 +280,12 @@ ERROR
   end
 
   def install_vendor_lib
-    full_plist_path = File.expand_path(build_path, PLIST_UTIL_VENDOR)
-    FileUtils.mkdir_p(full_plist_path)
-    run("curl #{PLIST_UTIL_BIN} -o - | tar -xz -C #{full_plist_path} -f -")
+    topic "Installing plistutils from: #{PLIST_UTIL_BIN}"
+    FileUtils.mkdir_p(PLIST_UTIL_VENDOR)
+    run("curl #{PLIST_UTIL_BIN} -o - | tar -xz -C #{PLIST_UTIL_VENDOR} -f -")
+    Dir["#{PLIST_UTIL_VENDOR}/plistutil/bin/*"].each {|path|
+      run("chmod +x #{path}")
+    }
   end
 
   # find the ruby install path for its binstubs during build
@@ -300,7 +303,7 @@ ERROR
 
   # setup the environment so we can use the vendored ruby
   def setup_ruby_install_env
-    ENV["PATH"] = "#{ruby_install_binstub_path}:#{ENV["PATH"]}"
+    ENV["PATH"] = "#{ruby_install_binstub_path}:thirdparty/plistutil/bin:#{ENV["PATH"]}"
 
     if ruby_version_jruby?
       ENV['JAVA_OPTS']  = default_java_opts
