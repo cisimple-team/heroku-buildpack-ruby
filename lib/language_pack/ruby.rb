@@ -205,8 +205,8 @@ private
   def setup_profiled
     set_env_override "GEM_PATH",        "$HOME/#{slug_vendor_base}:$GEM_PATH"
     set_env_default  "LANG",            "en_US.UTF-8"
-    set_env_override "PATH",            "#{PLIST_UTIL_VENDOR}/plistutil/bin:$HOME/bin:$HOME/#{slug_vendor_base}/bin:$PATH"
-    set_env_override "LD_LIBRARY_PATH", "#{PLIST_UTIL_VENDOR}/plistutil/lib:$LD_LIBRARY_PATH"
+    set_env_override "PATH",            "$HOME/#{PLIST_UTIL_VENDOR}/plistutil/bin:$HOME/bin:$HOME/#{slug_vendor_base}/bin:$PATH"
+    set_env_override "LD_LIBRARY_PATH", "$HOME/#{PLIST_UTIL_VENDOR}/plistutil/lib:$LD_LIBRARY_PATH"
 
     if ruby_version_jruby?
       set_env_default "JAVA_OPTS", default_java_opts
